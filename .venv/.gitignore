@@ -1,6 +1,0 @@
-# Virtual Environment
-.venv/
-# Python Cache files
-__pycache__/
-# Streamlit local files
-.streamlit/

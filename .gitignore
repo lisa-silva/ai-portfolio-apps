@@ -1,0 +1,9 @@
+Virtual Environment
+
+.venv/
+Python Cache files
+
+pycache/
+Streamlit local files
+
+.streamlit/

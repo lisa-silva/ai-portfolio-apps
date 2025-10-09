@@ -5,8 +5,9 @@ import time
 from typing import Dict, Any, List
 
 # --- Configuration ---
-# NOTE: The apiKey will be automatically injected by the execution environment
-API_KEY = ""
+# Read the API key from the standard Streamlit secrets configuration
+# NOTE: If you are running this locally, you must have the .streamlit/secrets.toml file setup.
+API_KEY = st.secrets.tool_auth.gemini_api_key
 # Using a model known for strong reasoning and grounding
 API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent"
 MODEL_NAME = "gemini-2.5-flash-preview-05-20"
@@ -20,37 +21,36 @@ def verify_claim(claim: str) -> Dict[str, Any]:
     """
     Sends a claim to the Gemini model with Google Search enabled to ground the response
     in external, verifiable information.
-
-    Args:
-        claim: The user's claim or question related to the Bible or history.
-
-    Returns:
-        A dictionary containing the generated text and any supporting source URIs.
     """
     
-   # 1. Define the NEW, highly specific System Prompt
+    # 1. Define the NEW, highly specific System Prompt
     system_prompt = (
-        "You are a neutral Comparative Theologian specializing in Roman Catholic and Protestant Scriptural studies. "
-        "Your task is to analyze the user's claim and immediately structure your response into a two-part comparison: "
+        "You are an impartial, highly detailed Scriptural Fact-Checker and Comparative Theologian. "
+        "Your primary goal is to provide clarity by comparing Roman Catholic doctrine with explicit biblical support. "
         
-        "1. **Roman Catholic Teaching & Tradition:** Describe the official Roman Catholic position (citing the Catechism, Tradition, or Papal pronouncements). "
-        "2. **Christian Standard Bible (CSB) Textual Basis:** Analyze the claim against the direct text of the Christian Standard Bible (CSB) or other mainline Protestant translations, emphasizing the presence or *absence* of explicit scriptural support for the claim. "
+        "Analyze the user's claim and structure your response into these two distinct, fact-based sections: "
         
-        "Use the Google Search results to ground both sides of the comparison. Maintain a neutral, factual, and informative tone."
+        "1. **Roman Catholic Doctrine (Catechism/Tradition):** State the official Roman Catholic teaching regarding the claim. You MUST cite the Catechism of the Catholic Church (CCC) or official Magisterial tradition as the primary source for this doctrine. "
+        
+        "2. **Scriptural Verification (CSB, KJV, Other Bibles):** Examine the claim against the explicit text of the Bible, prioritizing the **Christian Standard Bible (CSB)** and **King James Version (KJV)** translations, and noting if other standard translations (like the New World Study Bible or World Study Bible) contain explicit references. Specifically note where direct, unambiguous scriptural support for the doctrine is **present or absent**. "
+        
+        "Use Google Search for grounding to ensure accuracy on both the Catechism text and the biblical textual status. Maintain a neutral, factual tone."
     )
 
     # 2. Define the User Query
     user_query = (
-        f"Analyze the following claim based on current historical and textual research: '{claim}'"
+        f"Provide a comparative analysis of the claim: '{claim}'"
     )
     
     # 3. Construct the Payload
     payload = {
         "contents": [{"parts": [{"text": user_query}]}],
-        # Crucial: Enable Google Search for grounding and up-to-date information
-        "tools": [{"google_search": {}}],
+        "tools": [{"google_search": {} }], # Crucial: Enable Google Search for grounding
         "systemInstruction": {"parts": [{"text": system_prompt}]},
     }
+    
+    # ... (rest of the function for API calls, backoff, and source extraction) ...
+    # (The rest of the function remains unchanged from the previous code)
 
     headers = {'Content-Type': 'application/json'}
     
@@ -91,41 +91,44 @@ def verify_claim(claim: str) -> Dict[str, Any]:
             return {"text": f"An unexpected error occurred during API processing: {e}", "sources": []}
 
 
-# --- Streamlit UI and Logic ---
+# --- Streamlit UI and Logic (Updated Title/Description) ---
 
 def main():
     """Defines the layout and interactivity of the Streamlit app."""
     
     st.set_page_config(
-        page_title="Biblical Claim Verifier", 
+        page_title="The Catechism-Scripture Analyzer", 
         layout="wide",
         initial_sidebar_state="collapsed"
     )
 
-    st.title("📜 The Biblical Claim Verifier")
+    st.title("⚖️ The Catechism-Scripture Analyzer")
     st.markdown(
         """
-        A tool for fact-checking claims and historical contexts relating to the Bible. 
-        Responses are grounded in modern scholarly and historical research.
+        A neutral, fact-based tool designed to help you research and compare specific doctrines taught
+        by the **Catechism of the Catholic Church (CCC)** against the explicit textual content of
+        various Protestant Bibles, including the **Christian Standard Bible (CSB)** and the **King James Version (KJV)**.
+        
+        Enter any theological claim for a detailed, dual-source analysis.
         """
     )
     
     # Text Area for the user's claim
     claim_input = st.text_area(
-        "Enter a Historical or Biblical Claim to Verify:",
-        placeholder="E.g., 'The Exodus account is independently verified by Egyptian records.'",
+        "Enter a Theological Claim for Comparative Analysis:",
+        placeholder="E.g., 'The Catholic Church teaches Purgatory exists.' or 'The Assumption of Mary'",
         height=100
     )
 
     # Button to trigger the verification
-    if st.button("Verify Claim", type="primary"):
+    if st.button("Analyze Comparison", type="primary"):
         if claim_input:
             # Show a loading spinner while the API call is made
-            with st.spinner("Searching scholarly sources and analyzing claim..."):
+            with st.spinner("Searching official sources and performing dual-source analysis..."):
                 results = verify_claim(claim_input)
             
             # --- Display Results ---
-            st.markdown("### 🔎 Analysis Results")
+            st.markdown("### 🔎 Comparative Analysis Results")
             
             # Display the generated text
             st.markdown(results["text"])
@@ -143,12 +146,12 @@ def main():
                     source_list += f"- **[{title}]({source['uri']})**\n"
                 
                 st.markdown(source_list)
-                st.caption("Note: Grounding sources are provided by Google Search and may include links to scholarly journals, historical documents, or reputable reference sites.")
+                st.caption("Note: Grounding sources are provided by Google Search and may include links to official Catechism documents or reputable theological sites.")
             else:
                 st.warning("No specific grounding sources were found, or the model relied on internal knowledge.")
             
         else:
-            st.warning("Please enter a claim to begin verification.")
+            st.warning("Please enter a claim to begin analysis.")
 
 if __name__ == "__main__":
     main()

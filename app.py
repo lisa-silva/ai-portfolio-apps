@@ -8,8 +8,13 @@ import requests
 from bs4 import BeautifulSoup
 from textblob import TextBlob
 import datetime
-from datetime import timedelta # Explicitly needed for the date fix
+from datetime import timedelta 
 import time 
+
+# --- NEW GLOBAL IMPORTS FOR PROJECTS 5 & 6 (FIXED ERRORS) ---
+import sqlite3
+import plotly.express as px 
+# -----------------------------------------------------------
 
 # --- Configuration ---
 st.set_page_config(
@@ -31,7 +36,7 @@ def welcome_page():
         Use the **sidebar menu** on the left to navigate between the six live applications.
     """)
     
-    st.info("💡 Status: Project 5 (Finance Tracker) is fully integrated and fixed! Project 6 (LeaseSync AI) is ready for integration. Use the sidebar to explore.")
+    st.info("💡 Status: Project 5 (Finance Tracker) and Project 6 (LeaseSync AI) are fully integrated! Use the sidebar to explore.")
 
 
 def csv_analyzer_app():
@@ -167,9 +172,64 @@ def finance_app_container():
 
 def leasesync_ai_container():
     """Container for the LeaseSync AI project (Project 6)."""
-    st.title("6. 🤖 LeaseSync AI (AI Integration)")
-    st.info("Paste the complete code from your working LeaseSync AI file here.")
-    st.markdown("**(Placeholder for LeaseSync AI App)**")
+    
+    # NOTE: Imports like sqlite3 and plotly.express are now handled globally at the top of app.py
+
+    # Connect to database (fake for now)
+    conn = sqlite3.connect("leases.db")
+
+    # Sample lease data
+    @st.cache_data
+    def load_data():
+        data = pd.DataFrame({
+            "tenant_id": [1, 2, 3],
+            "name": ["John Doe", "Jane Smith", "Bob Lee"],
+            "lease_end": ["2026-01-15", "2025-11-30", "2025-12-20"],
+            "rent": [2000, 1800, 2200],
+            "status": ["Active", "Active", "Pending Renewal"]
+        })
+        return data
+
+    # Predict renewal likelihood (simple rule-based AI)
+    def predict_renewal(data):
+        today = datetime.datetime.now() # Use datetime.datetime now that it's imported globally
+        data["days_to_end"] = [(datetime.datetime.strptime(date, "%Y-%m-%d") - today).days for date in data["lease_end"]]
+        data["renewal_chance"] = [80 if days < 60 else 50 for days in data["days_to_end"]]
+        return data
+
+    # App Content Start
+    st.title("6. 🤖 LeaseSync AI (AI Integration & Data Analysis)")
+    
+    # Content starts here
+    data = load_data()
+    
+    # Use tabs for the LeaseSync pages instead of the sidebar menu.
+    tab1, tab2, tab3 = st.tabs(["Lease Overview", "Renewal Predictions", "Dashboard"])
+
+    with tab1:
+        st.header("Lease Management")
+        st.table(data[["tenant_id", "name", "lease_end", "rent", "status"]])
+        st.write("Upload new lease data (CSV):")
+        uploaded_file = st.file_uploader("Choose file", type="csv")
+        if uploaded_file:
+            new_data = pd.read_csv(uploaded_file)
+            st.table(new_data)
+
+    with tab2:
+        st.header("Renewal Predictions")
+        data = predict_renewal(data)
+        st.table(data[["tenant_id", "name", "lease_end", "renewal_chance"]])
+        for index, row in data.iterrows():
+            if row["renewal_chance"] > 60:
+                st.success(f"Send renewal offer to {row['name']}!")
+            else:
+                st.warning(f"Follow up with {row['name']}.")
+
+    with tab3:
+        st.header("Lease Dashboard")
+        fig = px.bar(data, x="name", y="rent", color="status", title="Rent by Tenant")
+        st.plotly_chart(fig)
+    # App Content End
 
 
 # --- Main Navigation Logic ---

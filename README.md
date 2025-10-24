@@ -31,7 +31,7 @@ This app is a specialized critical thinking engine configured to promote constru
 
     Output Model: Output is rigidly structured to provide distinct, evidence-based Counter-Arguments and Supporting Evidence, demonstrating proficiency in complex output schema design.
 
-🔗 Live URL (The Premise Challenger): https://lisa-silva-the-premise-challenger-app.streamlit.app/
+🔗 Live URL (The Premise Challenger): [https://lisa-silva-the-premise-challenger-app.streamlit.app/](https://lisa-silva-the-premise-challenger-app.streamlit.app/)
 
 3. ⛪ Catechism-Scripture Analyzer App
 Project Goal: Deep Domain Expertise Applied to AI Synthesis

@@ -20,9 +20,9 @@ This application transforms the LLM into an impartial, high-fidelity fact-checki
 
     Analysis Model: Designed a custom System Prompt that enforces a rigid, impartial analysis framework: Verification Status (TRUE, FALSE, or MISLEADING) with separate sections for Supporting and Contradicting Evidence.
 
-🔗 Live URL (Political Fact-Checker): <https://lisa-silva-the-political-fact-checker-app.streamlit.app/>
+🔗 Live URL (Political Fact-Checker): https://lisa-silva-the-political-fact-checker-app.streamlit.app/
 
-2.🧠 The Premise Challenger App
+2. 🧠 The Premise Challenger App
 Project Goal: Structured Critical Analysis and Dialogue
 
 This app is a specialized critical thinking engine configured to promote constructive dialogue by synthesizing the strongest possible arguments across opposing viewpoints.
